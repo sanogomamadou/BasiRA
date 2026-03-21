@@ -1,0 +1,89 @@
+# BasiRA — بصيرة
+
+**Assistant IA de Perception Augmentée pour Personnes Malvoyantes**
+
+BasiRA est une application web qui aide les personnes en situation de handicap visuel à percevoir leur environnement grâce à l'intelligence artificielle.
+
+## Fonctionnalités
+
+- **Description de scène** — Pointe la caméra et demande "Décris ce qui est devant moi"
+- **Lecture de documents** — Photographie un document et demande "Lis ce document"
+- **Questions visuelles** — Pose n'importe quelle question sur ce que la caméra voit
+- **Interface 100% vocale** — Maintenir le micro pour parler, réponse audio automatique
+- **Boutons rapides** — Décrire, Lire, Couleurs, Personnes en un clic
+
+## Architecture
+
+```
+Utilisateur (téléphone au cou + écouteur)
+        │
+        ▼
+   PWA Frontend (caméra + micro)
+        │
+        ▼
+   Backend FastAPI
+        │
+   ┌────┼────────┐
+   ▼    ▼        ▼
+ Groq  Groq    gTTS
+ STT   Vision  (TTS)
+```
+
+## Stack technique
+
+| Composant | Technologie |
+|-----------|-------------|
+| STT | Whisper large-v3 via Groq (gratuit) |
+| Vision/OCR/VQA | Llama 4 Scout via Groq (gratuit) |
+| TTS | gTTS - Google Text-to-Speech (gratuit) |
+| Backend | FastAPI + Python |
+| Frontend | PWA vanilla (HTML/JS) |
+
+## Installation
+
+### 1. Cloner le repo
+```bash
+git clone https://github.com/sanogomamadou/BasiRA.git
+cd BasiRA
+```
+
+### 2. Installer les dépendances
+```bash
+cd backend
+pip install -r requirements.txt
+```
+
+### 3. Configurer la clé API Groq
+Créer un compte gratuit sur [console.groq.com](https://console.groq.com) et obtenir une API key.
+
+Option A — Variable d'environnement (recommandé) :
+```bash
+set GROQ_API_KEY=gsk_votre_cle_ici   # Windows
+export GROQ_API_KEY=gsk_votre_cle_ici # Linux/Mac
+```
+
+Option B — Modifier `config.py` directement (ne pas commit la clé).
+
+### 4. Lancer le serveur
+```bash
+python main.py
+```
+
+### 5. Ouvrir l'application
+Ouvrir `http://localhost:8000` dans Chrome.
+
+## Utilisation
+
+1. Autoriser la caméra et le micro
+2. **Boutons rapides** : cliquer sur Décrire / Lire / Couleurs / Personnes
+3. **Commande vocale** : maintenir le bouton micro, parler, relâcher
+4. La réponse s'affiche en texte et se lit en audio
+
+## Projet réalisé dans le cadre du
+
+**17ᵉ Forum National du Handicap** — Centre National Mohammed VI des Handicapés  
+*"Accessibilité numérique et intelligence artificielle : un levier pour la promotion des droits des personnes en situation de handicap"*
+
+## Auteur
+
+Université Internationale de Rabat (UIR)
