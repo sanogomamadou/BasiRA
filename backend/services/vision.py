@@ -1,0 +1,77 @@
+import httpx
+import base64
+from config import GROQ_API_KEY, VISION_MODEL
+
+GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+HEADERS = {
+    "Authorization": f"Bearer {GROQ_API_KEY}",
+    "Content-Type": "application/json"
+}
+
+
+async def _call_vision(image_bytes: bytes, prompt: str, max_tokens: int = 300) -> str:
+    """Appel générique à Groq Vision avec une image + un prompt."""
+    b64 = base64.b64encode(image_bytes).decode()
+
+    payload = {
+        "model": VISION_MODEL,
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{b64}"
+                        }
+                    }
+                ]
+            }
+        ],
+        "max_tokens": max_tokens,
+        "temperature": 0.3
+    }
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.post(GROQ_URL, headers=HEADERS, json=payload)
+
+        if response.status_code != 200:
+            raise Exception(f"Groq Vision error {response.status_code}: {response.text}")
+
+        return response.json()["choices"][0]["message"]["content"]
+
+
+async def describe_scene(image_bytes: bytes) -> str:
+    """Décrit une scène pour une personne malvoyante."""
+    prompt = (
+        "Tu es un assistant pour une personne aveugle. "
+        "Décris cette scène de manière concise et utile pour la navigation. "
+        "Mentionne : les obstacles, les personnes, les panneaux lisibles, "
+        "les portes, les directions possibles. "
+        "Réponds en français, 2-3 phrases maximum."
+    )
+    return await _call_vision(image_bytes, prompt, max_tokens=200)
+
+
+async def read_document(image_bytes: bytes) -> str:
+    """Lit et structure le contenu d'un document photographié."""
+    prompt = (
+        "Tu es un assistant pour une personne aveugle. "
+        "Extrais et lis tout le texte visible dans cette image. "
+        "Si c'est un formulaire, indique les champs et leurs valeurs. "
+        "Si c'est une ordonnance, lis les médicaments et posologies. "
+        "Si c'est un panneau ou une affiche, lis le contenu. "
+        "Structure ta réponse clairement. Réponds en français."
+    )
+    return await _call_vision(image_bytes, prompt, max_tokens=500)
+
+
+async def visual_qa(image_bytes: bytes, question: str) -> str:
+    """Répond à une question libre sur une image."""
+    prompt = (
+        "Tu es un assistant pour une personne aveugle. "
+        f"Réponds à cette question de manière concise et utile : {question} "
+        "Réponds en français."
+    )
+    return await _call_vision(image_bytes, prompt, max_tokens=200)

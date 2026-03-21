@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0e1a">
+    <title>BasiRA</title>
+    <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #0a0e1a;
+            --bg-card: #121829;
+            --accent: #00d4aa;
+            --accent-glow: rgba(0,212,170,0.3);
+            --accent-soft: rgba(0,212,170,0.1);
+            --danger: #ff6b6b;
+            --text-primary: #e8ecf4;
+            --text-secondary: #7a8599;
+            --text-dim: #4a5568;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+        body {
+            font-family:'Outfit',sans-serif; background:var(--bg-deep); color:var(--text-primary);
+            height:100dvh; display:flex; flex-direction:column; overflow:hidden;
+        }
+        body::before {
+            content:''; position:fixed; top:-50%; left:-50%; width:200%; height:200%;
+            background:radial-gradient(circle at 30% 20%,rgba(0,212,170,0.05) 0%,transparent 50%),
+                        radial-gradient(circle at 70% 80%,rgba(0,100,212,0.03) 0%,transparent 50%);
+            z-index:0; pointer-events:none;
+        }
+
+        .header { position:relative; z-index:10; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; }
+        .logo { display:flex; align-items:center; gap:10px; }
+        .logo-icon { width:36px; height:36px; background:linear-gradient(135deg,var(--accent),#00a088); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+        .logo-text { font-size:22px; font-weight:700; letter-spacing:-0.5px; }
+        .logo-text span { color:var(--accent); }
+        .status-badge { font-size:12px; color:var(--text-secondary); background:var(--accent-soft); padding:4px 12px; border-radius:20px; border:1px solid rgba(0,212,170,0.15); }
+        .status-badge.connected { color:var(--accent); }
+        .status-badge.error { color:var(--danger); background:rgba(255,107,107,0.1); border-color:rgba(255,107,107,0.2); }
+
+        .camera-container { position:relative; z-index:5; flex:1; margin:0 16px; border-radius:16px; overflow:hidden; background:#000; border:1px solid rgba(255,255,255,0.06); }
+        #camera-feed { width:100%; height:100%; object-fit:cover; display:block; }
+        .cam-c { position:absolute; width:24px; height:24px; border-color:var(--accent); border-style:solid; border-width:0; opacity:0.6; }
+        .cam-c.tl { top:12px; left:12px; border-top-width:2px; border-left-width:2px; border-top-left-radius:6px; }
+        .cam-c.tr { top:12px; right:12px; border-top-width:2px; border-right-width:2px; border-top-right-radius:6px; }
+        .cam-c.bl { bottom:12px; left:12px; border-bottom-width:2px; border-left-width:2px; border-bottom-left-radius:6px; }
+        .cam-c.br { bottom:12px; right:12px; border-bottom-width:2px; border-right-width:2px; border-bottom-right-radius:6px; }
+        .camera-placeholder { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:var(--text-secondary); cursor:pointer; }
+        .camera-placeholder svg { width:48px; height:48px; opacity:0.4; }
+
+        .quick-actions { position:relative; z-index:10; padding:10px 16px 4px; display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; }
+        .quick-actions::-webkit-scrollbar { display:none; }
+        .quick-btn { flex-shrink:0; padding:8px 16px; border-radius:20px; border:1px solid rgba(255,255,255,0.08); background:var(--bg-card); color:var(--text-secondary); font-family:'Outfit',sans-serif; font-size:13px; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+        .quick-btn:active { background:var(--accent-soft); color:var(--accent); border-color:var(--accent); }
+
+        .response-panel { position:relative; z-index:10; margin:8px 16px; padding:14px 18px; background:var(--bg-card); border-radius:10px; border:1px solid rgba(255,255,255,0.05); min-height:56px; max-height:130px; overflow-y:auto; transition:all 0.3s; }
+        .response-panel.active { border-color:var(--accent); box-shadow:0 0 20px var(--accent-glow); }
+        .response-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); margin-bottom:4px; }
+        .response-text { font-size:15px; font-weight:300; line-height:1.5; }
+        .response-text.placeholder { color:var(--text-dim); font-style:italic; }
+        .response-action { display:inline-block; font-size:11px; font-weight:600; color:var(--accent); background:var(--accent-soft); padding:2px 8px; border-radius:4px; margin-bottom:4px; }
+
+        .controls { position:relative; z-index:10; padding:10px 16px 24px; display:flex; align-items:center; justify-content:center; gap:16px; }
+        .btn-side { width:52px; height:52px; border-radius:50%; border:1.5px solid rgba(255,255,255,0.1); background:var(--bg-card); color:var(--text-secondary); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; }
+        .btn-side:active { transform:scale(0.92); }
+        .btn-side svg { width:22px; height:22px; }
+
+        .btn-record { width:76px; height:76px; border-radius:50%; border:3px solid var(--accent); background:transparent; color:var(--accent); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; position:relative; }
+        .btn-record::before { content:''; position:absolute; inset:-8px; border-radius:50%; border:1px solid rgba(0,212,170,0.15); }
+        .btn-record svg { width:30px; height:30px; }
+        .btn-record:active { transform:scale(0.94); }
+        .btn-record.recording { background:var(--accent); color:var(--bg-deep); animation:pulse 1.5s ease-in-out infinite; }
+        .btn-record.processing { border-color:var(--text-dim); color:var(--text-dim); pointer-events:none; }
+        @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 var(--accent-glow)} 50%{box-shadow:0 0 0 16px rgba(0,212,170,0)} }
+
+        .spinner { display:none; width:24px; height:24px; border:2px solid var(--text-dim); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; }
+        @keyframes spin { to{transform:rotate(360deg)} }
+        #capture-canvas { display:none; }
+    </style>
+</head>
+<body>
+<canvas id="capture-canvas"></canvas>
+
+<div class="header">
+    <div class="logo">
+        <div class="logo-icon">&#128065;</div>
+        <div class="logo-text">Basi<span>RA</span></div>
+    </div>
+    <div class="status-badge" id="status-badge">Connexion...</div>
+</div>
+
+<div class="camera-container">
+    <video id="camera-feed" autoplay playsinline muted></video>
+    <div class="cam-c tl"></div><div class="cam-c tr"></div><div class="cam-c bl"></div><div class="cam-c br"></div>
+    <div class="camera-placeholder" id="camera-placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <span>Appuyez pour activer la camera</span>
+    </div>
+</div>
+
+<div class="quick-actions">
+    <button class="quick-btn" data-action="describe">&#128065; Decrire</button>
+    <button class="quick-btn" data-action="read">&#128196; Lire</button>
+    <button class="quick-btn" data-action="colors">&#127912; Couleurs</button>
+    <button class="quick-btn" data-action="people">&#128101; Personnes</button>
+</div>
+
+<div class="response-panel" id="response-panel">
+    <div class="response-label">Reponse</div>
+    <div class="response-text placeholder" id="response-text">Maintenez le micro et posez votre question...</div>
+</div>
+
+<div class="controls">
+    <button class="btn-side" id="btn-switch" aria-label="Changer camera">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 16v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/><polyline points="14 2 18 6 14 10"/><line x1="18" y1="6" x2="9" y2="6"/></svg>
+    </button>
+    <button class="btn-record" id="btn-record" aria-label="Maintenir pour parler">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="mic-icon"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        <div class="spinner" id="spinner"></div>
+    </button>
+    <button class="btn-side" id="btn-stop" aria-label="Arreter audio">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+    </button>
+</div>
+
+<script>
+const API = `${location.protocol}//${location.hostname}:8000`;
+
+let stream = null, recorder = null, chunks = [], recording = false, processing = false, audio = null, frontCam = false;
+
+const $ = id => document.getElementById(id);
+const video = $('camera-feed'), placeholder = $('camera-placeholder'), canvas = $('capture-canvas');
+const btnRec = $('btn-record'), resPanel = $('response-panel'), resText = $('response-text');
+const badge = $('status-badge'), micIcon = $('mic-icon'), spin = $('spinner');
+
+// --- Camera ---
+async function initCam() {
+    try {
+        if (stream) stream.getTracks().forEach(t => t.stop());
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: frontCam ? 'user' : 'environment', width:{ideal:1280}, height:{ideal:720} },
+            audio: true
+        });
+        video.srcObject = stream;
+        placeholder.style.display = 'none';
+        setStatus('connected', 'En ligne');
+    } catch(e) { console.error(e); setStatus('error', 'Camera refusee'); }
+}
+
+function grabFrame() {
+    const ctx = canvas.getContext('2d');
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    ctx.drawImage(video, 0, 0);
+    return new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.8));
+}
+
+// --- Recording ---
+function startRec() {
+    if (processing || !stream) return;
+    stopAudio(); chunks = [];
+    const at = stream.getAudioTracks()[0];
+    if (!at) { setStatus('error','Pas de micro'); return; }
+    const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
+    recorder = new MediaRecorder(new MediaStream([at]), { mimeType: mime });
+    recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+    recorder.onstop = () => sendProcess(new Blob(chunks, { type: mime }));
+    recorder.start();
+    recording = true;
+    btnRec.classList.add('recording');
+}
+
+function stopRec() {
+    if (!recording || !recorder) return;
+    recorder.stop(); recording = false;
+    btnRec.classList.remove('recording');
+}
+
+// --- Process (voice command) ---
+async function sendProcess(audioBlob) {
+    if (processing) return;
+    processing = true; setUI(true);
+    setResponse('Analyse en cours...', '', true);
+    try {
+        const img = await grabFrame();
+        const fd = new FormData();
+        fd.append('audio', audioBlob, 'cmd.webm');
+        fd.append('image', img, 'frame.jpg');
+        const r = await fetch(`${API}/process`, { method:'POST', body:fd });
+        if (!r.ok) throw new Error(r.status);
+        const d = await r.json();
+        setResponse(d.text, d.action, false);
+        if (d.audio) playB64(d.audio);
+    } catch(e) { console.error(e); setResponse('Erreur serveur.','',false); setStatus('error','Erreur'); }
+    finally { processing = false; setUI(false); }
+}
+
+// --- Quick actions (no voice needed) ---
+async function quickAction(action) {
+    if (processing || !stream) return;
+    processing = true; setUI(true);
+    setResponse('Analyse en cours...', '', true);
+    try {
+        const img = await grabFrame();
+        const fd = new FormData();
+        fd.append('image', img, 'frame.jpg');
+
+        let url, key;
+        if (action === 'describe') { url = '/describe'; key = 'description'; }
+        else if (action === 'read') { url = '/read'; key = 'text'; }
+        else if (action === 'colors') { url = '/ask?question=Quelles couleurs vois-tu dans cette scene ?'; key = 'answer'; }
+        else if (action === 'people') { url = '/ask?question=Combien de personnes vois-tu ?'; key = 'answer'; }
+
+        const r = await fetch(`${API}${url}`, { method:'POST', body:fd });
+        if (!r.ok) throw new Error(r.status);
+        const d = await r.json();
+        const txt = d[key] || 'Pas de reponse';
+        setResponse(txt, action, false);
+
+        // TTS
+        const t = await fetch(`${API}/tts-base64`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text:txt}) });
+        const td = await t.json();
+        if (td.audio) playB64(td.audio);
+    } catch(e) { console.error(e); setResponse('Erreur.','',false); }
+    finally { processing = false; setUI(false); }
+}
+
+// --- Audio ---
+function playB64(b64) {
+    stopAudio();
+    const bin = atob(b64), arr = new Uint8Array(bin.length);
+    for (let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([arr],{type:'audio/mpeg'}));
+    audio = new Audio(url);
+    audio.play().catch(e=>console.error(e));
+    audio.onended = () => { URL.revokeObjectURL(url); audio=null; };
+}
+function stopAudio() { if(audio){audio.pause();audio=null;} }
+
+// --- UI ---
+function setStatus(t,txt) { badge.textContent=txt; badge.className=`status-badge ${t}`; }
+function setResponse(txt,action,loading) {
+    resPanel.classList.toggle('active',!loading);
+    const labels={describe:'Description',read:'Lecture',ask:'Question',colors:'Couleurs',people:'Personnes'};
+    let h='';
+    if(action&&labels[action]) h+=`<span class="response-action">${labels[action]}</span><br>`;
+    h+=txt; resText.innerHTML=h; resText.classList.toggle('placeholder',loading);
+}
+function setUI(on) { btnRec.classList.toggle('processing',on); micIcon.style.display=on?'none':'block'; spin.style.display=on?'block':'none'; }
+
+// --- Events ---
+btnRec.addEventListener('mousedown', startRec);
+btnRec.addEventListener('mouseup', stopRec);
+btnRec.addEventListener('mouseleave', ()=>{if(recording)stopRec();});
+btnRec.addEventListener('touchstart', e=>{e.preventDefault();startRec();});
+btnRec.addEventListener('touchend', e=>{e.preventDefault();stopRec();});
+$('btn-switch').addEventListener('click', ()=>{frontCam=!frontCam;initCam();});
+$('btn-stop').addEventListener('click', stopAudio);
+document.querySelectorAll('.quick-btn').forEach(b=>b.addEventListener('click',()=>quickAction(b.dataset.action)));
+placeholder.addEventListener('click', initCam);
+
+// --- Init ---
+(async()=>{
+    try { const r=await fetch(`${API}/health`); if(r.ok) setStatus('connected','En ligne'); else setStatus('error','Serveur HS'); }
+    catch { setStatus('error','Hors ligne'); }
+})();
+initCam();
+</script>
+</body>
+</html>

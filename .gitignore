@@ -1,0 +1,13 @@
+﻿__pycache__/
+*.pyc
+*.pt
+*.onnx
+*.mp3
+*.wav
+.env
+config_local.py
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+backend/shoes.png
