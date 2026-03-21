@@ -1,89 +1,384 @@
-# BasiRA — بصيرة
+<p align="center">
+  <img src="https://img.shields.io/badge/BasiRA-بصيرة-00e4b8?style=for-the-badge&labelColor=080c16" alt="BasiRA"/>
+</p>
 
-**Assistant IA de Perception Augmentée pour Personnes Malvoyantes**
+<h1 align="center">BasiRA — بصيرة</h1>
+<h3 align="center">Assistant IA de Perception Augmentée pour Personnes Malvoyantes</h3>
 
-BasiRA est une application web qui aide les personnes en situation de handicap visuel à percevoir leur environnement grâce à l'intelligence artificielle.
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.12+-3776ab?logo=python&logoColor=white" alt="Python"/>
+  <img src="https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white" alt="FastAPI"/>
+  <img src="https://img.shields.io/badge/Groq-Llama_4_Scout-f55036?logo=meta&logoColor=white" alt="Groq"/>
+  <img src="https://img.shields.io/badge/Whisper-STT-74aa9c?logo=openai&logoColor=white" alt="Whisper"/>
+  <img src="https://img.shields.io/badge/Coût-100%25_Gratuit-00e4b8" alt="Gratuit"/>
+</p>
 
-## Fonctionnalités
+<p align="center">
+  <em>BasiRA transforme un smartphone en assistant visuel intelligent : il décrit l'environnement, lit les documents, identifie la monnaie — le tout par interface 100% vocale, conçu pour les personnes en situation de handicap visuel.</em>
+</p>
 
-- **Description de scène** — Pointe la caméra et demande "Décris ce qui est devant moi"
-- **Lecture de documents** — Photographie un document et demande "Lis ce document"
-- **Questions visuelles** — Pose n'importe quelle question sur ce que la caméra voit
-- **Interface 100% vocale** — Maintenir le micro pour parler, réponse audio automatique
-- **Boutons rapides** — Décrire, Lire, Couleurs, Personnes en un clic
+---
 
-## Architecture
+## 📋 Table des matières
+
+- [Présentation](#-présentation)
+- [Fonctionnalités](#-fonctionnalités)
+- [Architecture technique](#-architecture-technique)
+- [Stack technologique](#-stack-technologique)
+- [Installation](#-installation)
+- [Configuration](#-configuration)
+- [Utilisation](#-utilisation)
+- [Accès mobile (HTTPS)](#-accès-mobile-https)
+- [Interactions utilisateur](#-interactions-utilisateur)
+- [Structure du projet](#-structure-du-projet)
+- [Endpoints API](#-endpoints-api)
+- [Accessibilité](#-accessibilité)
+- [Contexte du projet](#-contexte-du-projet)
+- [Auteur](#-auteur)
+
+---
+
+## 🎯 Présentation
+
+**BasiRA** (بصيرة — "clairvoyance" en arabe) est une application web progressive (PWA) qui utilise l'intelligence artificielle pour aider les personnes malvoyantes à percevoir et comprendre leur environnement.
+
+L'application fonctionne via un smartphone porté au cou avec un écouteur. L'utilisateur interagit **exclusivement par la voix et des gestes simples** — aucune interaction visuelle avec l'écran n'est nécessaire.
+
+### Pourquoi BasiRA ?
+
+- **Problème** : 2,2 milliards de personnes dans le monde souffrent de déficience visuelle (OMS). Au Maroc, plus de 500 000 personnes sont concernées. L'accès à l'information visuelle quotidienne (documents, monnaie, navigation) reste un défi majeur.
+
+- **Solution** : Une application mobile gratuite qui utilise la caméra du smartphone et l'IA pour "voir" à la place de l'utilisateur et lui décrire son environnement en temps réel par la voix.
+
+- **Différenciation** : Contrairement aux solutions existantes (Seeing AI, Be My Eyes), BasiRA est 100% gratuit, fonctionne en français, et est adapté au contexte marocain (monnaie MAD, documents administratifs locaux).
+
+---
+
+## ✨ Fonctionnalités
+
+### 🔊 Modules IA
+
+| Module | Description | Commande vocale |
+|--------|-------------|-----------------|
+| **Description de scène** | Décrit l'environnement visible par la caméra (obstacles, personnes, objets, directions) | "Décris ce qui est devant moi" |
+| **Lecture de documents** | Extrait et lit le texte de documents, formulaires, ordonnances, panneaux | "Lis ce document" |
+| **Questions visuelles** | Répond à toute question libre sur ce que la caméra voit | "C'est quoi la couleur de ce médicament ?" |
+| **Lecture de monnaie** | Identifie les billets et pièces marocaines (20, 50, 100, 200 DH) | "C'est combien ?" / "Quel billet ?" |
+
+### 🎮 Interactions accessibles
+
+| Geste | Action |
+|-------|--------|
+| **Double tap** (n'importe où) | Démarre l'enregistrement vocal |
+| **Simple tap** (pendant enregistrement) | Arrête et envoie la commande |
+| **Secouer le téléphone** | Bascule caméra avant/arrière + annonce vocale |
+| **Appui long 5 secondes** | Déclenche un appel d'urgence |
+| **Boutons rapides** | Décrire, Lire, Monnaie, Couleurs, Personnes |
+
+### 🔔 Retours sensoriels
+
+- **Bip aigu (880Hz)** — Enregistrement démarré
+- **Bip grave (440Hz)** — Enregistrement terminé, envoi en cours
+- **Bips progressifs (1s→4s)** — Compte à rebours urgence (de plus en plus aigu)
+- **Bip strident (1200Hz)** — Appel d'urgence déclenché
+- **Annonce vocale** — "Caméra avant" / "Caméra arrière" après basculement
+- **Détection de silence auto** — Fin d'enregistrement après 2,5s de silence
+
+---
+
+## 🏗 Architecture technique
 
 ```
-Utilisateur (téléphone au cou + écouteur)
-        │
-        ▼
-   PWA Frontend (caméra + micro)
-        │
-        ▼
-   Backend FastAPI
-        │
-   ┌────┼────────┐
-   ▼    ▼        ▼
- Groq  Groq    gTTS
- STT   Vision  (TTS)
+┌──────────────────────────────────────────────┐
+│           UTILISATEUR                        │
+│   📱 Smartphone au cou + écouteur            │
+│   🗣️  Double-tap → parle → réponse audio    │
+└──────────────────┬───────────────────────────┘
+                   │ audio + image (HTTPS)
+                   ▼
+┌──────────────────────────────────────────────┐
+│           PWA FRONTEND                       │
+│                                              │
+│   • Capture caméra (getUserMedia)            │
+│   • Enregistrement micro (MediaRecorder)     │
+│   • Double-tap / shake / appui long          │
+│   • Détection de silence (AudioAnalyser)     │
+│   • Lecture audio (balise <audio> native)     │
+│                                              │
+│   HTML/CSS/JS vanilla — aucune dépendance    │
+└──────────────────┬───────────────────────────┘
+                   │ REST API
+                   ▼
+┌──────────────────────────────────────────────┐
+│           BACKEND FASTAPI                    │
+│                                              │
+│   /process   → Orchestrateur principal       │
+│   /describe  → Description de scène         │
+│   /read      → Lecture de document           │
+│   /ask       → Question visuelle libre       │
+│   /money     → Identification de monnaie     │
+│   /stt       → Speech-to-Text               │
+│   /tts       → Text-to-Speech               │
+│   /audio/:id → Streaming audio MP3          │
+│                                              │
+│   Python 3.12 + FastAPI + uvicorn            │
+└──────────────────┬───────────────────────────┘
+                   │ API calls (gratuit)
+        ┌──────────┼──────────┐
+        ▼          ▼          ▼
+   ┌─────────┐ ┌────────┐ ┌──────┐
+   │  Groq   │ │  Groq  │ │ gTTS │
+   │ Whisper │ │ Llama4 │ │Google│
+   │  (STT)  │ │(Vision)│ │(TTS) │
+   └─────────┘ └────────┘ └──────┘
 ```
 
-## Stack technique
+### Flux de traitement d'une commande vocale
 
-| Composant | Technologie |
-|-----------|-------------|
-| STT | Whisper large-v3 via Groq (gratuit) |
-| Vision/OCR/VQA | Llama 4 Scout via Groq (gratuit) |
-| TTS | gTTS - Google Text-to-Speech (gratuit) |
-| Backend | FastAPI + Python |
-| Frontend | PWA vanilla (HTML/JS) |
+```
+1. Double-tap → bip aigu → enregistrement démarre
+2. Utilisateur parle : "Décris ce qui est devant moi"
+3. Silence 2.5s détecté → bip grave → enregistrement s'arrête
+4. Frontend envoie audio + frame caméra → POST /process
+5. Backend : audio → Whisper STT → "décris ce qui est devant moi"
+6. Backend : classify_command() → action = "describe"
+7. Backend : frame → Groq Llama 4 Scout Vision → description
+8. Backend : description → gTTS → audio MP3 sauvegardé dans cache
+9. Backend retourne : { text, action, audio_id }
+10. Frontend : affiche le texte + joue l'audio via GET /audio/{id}
+```
 
-## Installation
+---
+
+## 🛠 Stack technologique
+
+| Composant | Technologie | Coût | Détails |
+|-----------|-------------|------|---------|
+| **STT** | Whisper large-v3 via Groq | Gratuit | 14 400 req/jour, ~0.3s latence |
+| **Vision / OCR / VQA** | Llama 4 Scout 17B via Groq | Gratuit | Multimodal, 12 langues, 128K contexte |
+| **TTS** | gTTS (Google Text-to-Speech) | Gratuit | Voix française, aucune clé API requise |
+| **Backend** | FastAPI + Python 3.12 | — | Async, auto-documentation Swagger |
+| **Frontend** | HTML/CSS/JS vanilla (PWA) | — | Zéro dépendance, installable |
+| **HTTPS** | mkcert (certificats locaux) | — | Requis pour caméra/micro sur mobile |
+
+**Coût total de fonctionnement : 0€ / 0 DH**
+
+---
+
+## 📦 Installation
+
+### Prérequis
+
+- Python 3.10+
+- Un navigateur Chrome (desktop ou mobile)
+- Un compte Groq gratuit ([console.groq.com](https://console.groq.com))
 
 ### 1. Cloner le repo
+
 ```bash
 git clone https://github.com/sanogomamadou/BasiRA.git
 cd BasiRA
 ```
 
 ### 2. Installer les dépendances
+
 ```bash
 cd backend
 pip install -r requirements.txt
 ```
 
 ### 3. Configurer la clé API Groq
-Créer un compte gratuit sur [console.groq.com](https://console.groq.com) et obtenir une API key.
 
-Option A — Variable d'environnement (recommandé) :
-```bash
-set GROQ_API_KEY=gsk_votre_cle_ici   # Windows
-export GROQ_API_KEY=gsk_votre_cle_ici # Linux/Mac
+Créer un fichier `backend/config_local.py` (ignoré par git) :
+
+```python
+GROQ_API_KEY = "gsk_votre_cle_groq_ici"
 ```
 
-Option B — Modifier `config.py` directement (ne pas commit la clé).
+Ou via variable d'environnement :
+
+```bash
+# Windows PowerShell
+$env:GROQ_API_KEY="gsk_votre_cle_groq_ici"
+
+# Linux / Mac
+export GROQ_API_KEY=gsk_votre_cle_groq_ici
+```
 
 ### 4. Lancer le serveur
+
 ```bash
 python main.py
 ```
 
 ### 5. Ouvrir l'application
-Ouvrir `http://localhost:8000` dans Chrome.
 
-## Utilisation
+Naviguer vers `http://localhost:8000` dans Chrome.
 
-1. Autoriser la caméra et le micro
-2. **Boutons rapides** : cliquer sur Décrire / Lire / Couleurs / Personnes
-3. **Commande vocale** : maintenir le bouton micro, parler, relâcher
-4. La réponse s'affiche en texte et se lit en audio
+---
 
-## Projet réalisé dans le cadre du
+## ⚙️ Configuration
 
-**17ᵉ Forum National du Handicap** — Centre National Mohammed VI des Handicapés  
-*"Accessibilité numérique et intelligence artificielle : un levier pour la promotion des droits des personnes en situation de handicap"*
+### `config.py`
 
-## Auteur
+| Variable | Valeur par défaut | Description |
+|----------|-------------------|-------------|
+| `GROQ_API_KEY` | via config_local.py ou env | Clé API Groq |
+| `STT_MODEL` | `whisper-large-v3` | Modèle de transcription |
+| `VISION_MODEL` | `meta-llama/llama-4-scout-17b-16e-instruct` | Modèle de vision |
+| `HOST` | `0.0.0.0` | Adresse du serveur |
+| `PORT` | `8000` | Port du serveur |
 
-Université Internationale de Rabat (UIR)
+### Numéro d'urgence
+
+Dans `frontend/index.html`, modifier :
+
+```javascript
+const EMERGENCY_NUMBER = 'tel:+212XXXXXXXXX';
+```
+
+---
+
+## 📱 Accès mobile (HTTPS)
+
+Les navigateurs mobiles exigent HTTPS pour la caméra et le micro.
+
+### 1. Installer mkcert
+
+Télécharger depuis [github.com/FiloSottile/mkcert/releases](https://github.com/FiloSottile/mkcert/releases)
+
+### 2. Générer les certificats
+
+```bash
+mkcert -install
+ipconfig  # Noter votre IPv4 (ex: 192.168.1.42)
+cd backend
+mkcert localhost 127.0.0.1 192.168.1.42
+```
+
+### 3. Relancer le serveur
+
+```bash
+python main.py
+# Affiche : HTTPS activé avec localhost+2.pem + localhost+2-key.pem
+```
+
+### 4. Sur le téléphone
+
+1. Même réseau WiFi que le PC
+2. Ouvrir `https://192.168.1.42:8000`
+3. Accepter l'avertissement de sécurité
+4. Autoriser caméra + micro
+
+---
+
+## 🗂 Structure du projet
+
+```
+BasiRA/
+├── backend/
+│   ├── config.py              # Configuration (modèles, ports)
+│   ├── config_local.py        # Clé API Groq (ignoré par git)
+│   ├── main.py                # Serveur FastAPI + orchestrateur + routes
+│   ├── requirements.txt       # Dépendances Python
+│   ├── audio_cache/           # Cache audio TTS (auto-généré)
+│   └── services/
+│       ├── __init__.py
+│       ├── stt.py             # Speech-to-Text (Groq Whisper)
+│       ├── tts.py             # Text-to-Speech (gTTS)
+│       ├── vision.py          # Vision IA (Groq Llama 4 Scout)
+│       └── detection.py       # Détection d'obstacles (placeholder)
+├── frontend/
+│   ├── index.html             # PWA complète (HTML/CSS/JS)
+│   └── manifest.json          # Manifeste PWA
+├── .gitignore
+└── README.md
+```
+
+---
+
+## 🔌 Endpoints API
+
+Documentation Swagger interactive : `http://localhost:8000/docs`
+
+| Méthode | Endpoint | Description | Entrée | Sortie |
+|---------|----------|-------------|--------|--------|
+| `GET` | `/health` | Status du serveur | — | `{status, message}` |
+| `POST` | `/process` | **Orchestrateur** | audio + image | `{transcription, action, text, audio_id}` |
+| `POST` | `/describe` | Description de scène | image | `{description}` |
+| `POST` | `/read` | Lecture de document | image | `{text}` |
+| `POST` | `/ask?question=` | Question visuelle | image + query | `{answer}` |
+| `POST` | `/money` | Identification monnaie | image | `{result}` |
+| `POST` | `/stt` | Speech-to-Text | audio | `{text}` |
+| `POST` | `/tts` | Text-to-Speech | `{text}` | audio/mpeg |
+| `POST` | `/tts-url` | TTS → URL | `{text}` | `{audio_id}` |
+| `GET` | `/audio/{id}` | Servir audio | id | audio/mpeg |
+
+### Commandes vocales reconnues par l'orchestrateur
+
+| Action | Mots-clés |
+|--------|-----------|
+| `describe` | décris, décrit, devant moi, autour de moi, où suis-je, que vois |
+| `read` | lis, lire, lecture, document, texte, panneau, affiche, ordonnance |
+| `money` | billet, monnaie, argent, dirham, combien, pièce, sous |
+| `ask` | _(tout le reste — question libre par défaut)_ |
+
+---
+
+## ♿ Accessibilité
+
+BasiRA a été conçu dès le départ pour être utilisable **sans aucune capacité visuelle** :
+
+| Principe | Implémentation |
+|----------|---------------|
+| Zéro interaction visuelle | Double-tap, shake, appui long — pas besoin de voir l'écran |
+| Retours audio systématiques | Bips de confirmation, annonces vocales, réponses TTS |
+| Détection de silence auto | Pas besoin de cliquer pour arrêter l'enregistrement |
+| Urgence sans ciblage | Appui 5s n'importe où sur l'écran |
+| Pas de popups parasites | Sélection de texte et menu contextuel désactivés |
+| Onboarding audio-ready | Écran d'accueil présentant les gestes |
+| PWA installable | Ajout à l'écran d'accueil comme app native |
+
+### Usage recommandé au quotidien
+
+```
+📱 Smartphone en tour de cou (pochette ou clip)
+🎧 Un seul écouteur (garder une oreille pour l'environnement)
+📷 Caméra arrière orientée vers l'avant
+🤝 Secouer pour basculer en caméra avant si besoin
+```
+
+---
+
+## 🏛 Contexte du projet
+
+Projet réalisé dans le cadre du **17ᵉ Forum National du Handicap**, organisé par le **Centre National Mohammed VI des Handicapés**, sous le thème :
+
+> _« Accessibilité numérique et intelligence artificielle : un levier pour la promotion des droits des personnes en situation de handicap »_
+
+**Date** : 31 mars — 3 avril 2026
+**Lieu** : Centre National Mohammed VI des Handicapés, Salé Al Jadida
+
+### Alignement avec les axes du forum
+
+| Axe du forum | Application dans BasiRA |
+|-------------|------------------------|
+| IA et accès aux services de santé, d'éducation et de réhabilitation | Lecture d'ordonnances médicales, documents administratifs, panneaux |
+| Technologies d'assistance et solutions digitales pour l'autonomie | Cœur du projet — perception augmentée par IA |
+| Éthique de l'IA et protection des données | Aucune image stockée, code open-source, traitement éphémère |
+| Bonnes pratiques internationales en accessibilité numérique | Inspiré de Seeing AI / Be My Eyes, adapté au contexte marocain |
+
+---
+
+## 👤 Auteur
+
+**Sanogo Mamadou**
+Étudiant en dernière année Ingénierie Informatique — Spécialité Big Data & Intelligence Artificielle
+**Université Internationale de Rabat (UIR)**
+
+---
+
+<p align="center">
+  <strong>BasiRA — بصيرة</strong><br>
+  <em>Parce que l'intelligence artificielle doit servir ceux qui en ont le plus besoin.</em>
+</p>

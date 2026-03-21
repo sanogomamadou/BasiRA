@@ -75,3 +75,19 @@ async def visual_qa(image_bytes: bytes, question: str) -> str:
         "Réponds en français."
     )
     return await _call_vision(image_bytes, prompt, max_tokens=200)
+
+
+async def detect_money(image_bytes: bytes) -> str:
+    """Identifie les billets et pièces de monnaie marocaine (MAD)."""
+    prompt = (
+        "Tu es un assistant pour une personne aveugle au Maroc. "
+        "Regarde cette image et identifie les billets ou pièces de monnaie marocaine (dirham, MAD). "
+        "Les billets marocains existants sont : 20 DH (bleu), 50 DH (vert), 100 DH (marron/orange), 200 DH (jaune/doré). "
+        "Pour chaque billet ou pièce visible, indique : "
+        "- La valeur (ex: 100 dirhams) "
+        "- Le nombre si plusieurs billets "
+        "- Le total si plusieurs billets ou pièces "
+        "Si ce n'est pas de la monnaie, dis-le clairement. "
+        "Réponds en français, de manière concise."
+    )
+    return await _call_vision(image_bytes, prompt, max_tokens=200)

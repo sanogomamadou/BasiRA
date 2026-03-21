@@ -3,270 +3,472 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0a0e1a">
+    <meta name="theme-color" content="#080c16">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>BasiRA</title>
     <link rel="manifest" href="manifest.json">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-deep: #0a0e1a;
-            --bg-card: #121829;
-            --accent: #00d4aa;
-            --accent-glow: rgba(0,212,170,0.3);
-            --accent-soft: rgba(0,212,170,0.1);
-            --danger: #ff6b6b;
-            --text-primary: #e8ecf4;
-            --text-secondary: #7a8599;
-            --text-dim: #4a5568;
+            --bg: #080c16; --bg2: #0f1525; --bg3: #161d30;
+            --accent: #00e4b8; --accent2: #009e7e;
+            --accent-g: rgba(0,228,184,0.25); --accent-s: rgba(0,228,184,0.08);
+            --red: #ff5c5c;
+            --t1: #edf1f7; --t2: #8895a7; --t3: #4d5a6e;
+            --r: 14px;
         }
-        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-        body {
-            font-family:'Outfit',sans-serif; background:var(--bg-deep); color:var(--text-primary);
+        * { margin:0; padding:0; box-sizing:border-box;
+            -webkit-tap-highlight-color:transparent;
+            -webkit-user-select:none; user-select:none;
+            -webkit-touch-callout:none; }
+        body { font-family:'Outfit',sans-serif; background:var(--bg); color:var(--t1);
             height:100dvh; display:flex; flex-direction:column; overflow:hidden;
-        }
-        body::before {
-            content:''; position:fixed; top:-50%; left:-50%; width:200%; height:200%;
-            background:radial-gradient(circle at 30% 20%,rgba(0,212,170,0.05) 0%,transparent 50%),
-                        radial-gradient(circle at 70% 80%,rgba(0,100,212,0.03) 0%,transparent 50%);
-            z-index:0; pointer-events:none;
-        }
+            touch-action:manipulation; }
 
-        .header { position:relative; z-index:10; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; }
+        /* ===== ONBOARDING ===== */
+        .onboard { position:fixed; inset:0; z-index:999; background:var(--bg);
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            gap:24px; padding:40px; text-align:center; transition:opacity 0.5s, transform 0.5s; }
+        .onboard.hidden { opacity:0; transform:scale(1.05); pointer-events:none; }
+        .ob-logo { width:80px; height:80px; background:linear-gradient(135deg,var(--accent),var(--accent2));
+            border-radius:24px; display:flex; align-items:center; justify-content:center;
+            font-size:40px; box-shadow:0 8px 32px var(--accent-g); }
+        .onboard h1 { font-size:32px; font-weight:800; letter-spacing:-1px; }
+        .onboard h1 span { color:var(--accent); }
+        .onboard p { font-size:16px; color:var(--t2); line-height:1.6; max-width:320px; }
+        .ob-feats { display:flex; flex-direction:column; gap:12px; text-align:left; width:100%; max-width:300px; }
+        .ob-f { display:flex; align-items:center; gap:12px; font-size:14px; color:var(--t2); }
+        .ob-f .i { width:36px; height:36px; border-radius:10px; background:var(--accent-s);
+            display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+        .ob-btn { margin-top:8px; padding:16px 48px; border-radius:28px; border:none;
+            background:var(--accent); color:var(--bg); font-family:'Outfit',sans-serif;
+            font-size:16px; font-weight:700; cursor:pointer; transition:all 0.2s;
+            box-shadow:0 4px 20px var(--accent-g); }
+        .ob-btn:active { transform:scale(0.96); }
+
+        /* ===== HEADER ===== */
+        .header { position:relative; z-index:10; padding:14px 20px;
+            display:flex; align-items:center; justify-content:space-between; }
         .logo { display:flex; align-items:center; gap:10px; }
-        .logo-icon { width:36px; height:36px; background:linear-gradient(135deg,var(--accent),#00a088); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; }
-        .logo-text { font-size:22px; font-weight:700; letter-spacing:-0.5px; }
-        .logo-text span { color:var(--accent); }
-        .status-badge { font-size:12px; color:var(--text-secondary); background:var(--accent-soft); padding:4px 12px; border-radius:20px; border:1px solid rgba(0,212,170,0.15); }
-        .status-badge.connected { color:var(--accent); }
-        .status-badge.error { color:var(--danger); background:rgba(255,107,107,0.1); border-color:rgba(255,107,107,0.2); }
+        .logo-mark { width:32px; height:32px; background:linear-gradient(135deg,var(--accent),var(--accent2));
+            border-radius:9px; display:flex; align-items:center; justify-content:center;
+            font-size:15px; box-shadow:0 2px 12px var(--accent-g); }
+        .logo-name { font-size:20px; font-weight:800; letter-spacing:-0.5px; }
+        .logo-name span { color:var(--accent); }
 
-        .camera-container { position:relative; z-index:5; flex:1; margin:0 16px; border-radius:16px; overflow:hidden; background:#000; border:1px solid rgba(255,255,255,0.06); }
-        #camera-feed { width:100%; height:100%; object-fit:cover; display:block; }
-        .cam-c { position:absolute; width:24px; height:24px; border-color:var(--accent); border-style:solid; border-width:0; opacity:0.6; }
-        .cam-c.tl { top:12px; left:12px; border-top-width:2px; border-left-width:2px; border-top-left-radius:6px; }
-        .cam-c.tr { top:12px; right:12px; border-top-width:2px; border-right-width:2px; border-top-right-radius:6px; }
-        .cam-c.bl { bottom:12px; left:12px; border-bottom-width:2px; border-left-width:2px; border-bottom-left-radius:6px; }
-        .cam-c.br { bottom:12px; right:12px; border-bottom-width:2px; border-right-width:2px; border-bottom-right-radius:6px; }
-        .camera-placeholder { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:var(--text-secondary); cursor:pointer; }
-        .camera-placeholder svg { width:48px; height:48px; opacity:0.4; }
+        .badge { font-size:11px; font-weight:500; padding:5px 14px; border-radius:20px;
+            transition:all 0.4s; display:flex; align-items:center; gap:6px; }
+        .badge::before { content:''; width:6px; height:6px; border-radius:50%; transition:background 0.4s; }
+        .badge.ok { color:var(--accent); background:var(--accent-s); border:1px solid rgba(0,228,184,0.12); }
+        .badge.ok::before { background:var(--accent); }
+        .badge.rec { color:#fff; background:var(--accent); border:1px solid var(--accent); }
+        .badge.rec::before { background:#fff; animation:blink 1s infinite; }
+        .badge.err { color:var(--red); background:rgba(255,92,92,0.08); border:1px solid rgba(255,92,92,0.15); }
+        .badge.err::before { background:var(--red); }
+        .badge.proc { color:var(--t2); background:var(--bg3); border:1px solid rgba(255,255,255,0.06); }
+        .badge.proc::before { background:var(--t2); animation:blink 0.6s infinite; }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
 
-        .quick-actions { position:relative; z-index:10; padding:10px 16px 4px; display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; }
-        .quick-actions::-webkit-scrollbar { display:none; }
-        .quick-btn { flex-shrink:0; padding:8px 16px; border-radius:20px; border:1px solid rgba(255,255,255,0.08); background:var(--bg-card); color:var(--text-secondary); font-family:'Outfit',sans-serif; font-size:13px; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
-        .quick-btn:active { background:var(--accent-soft); color:var(--accent); border-color:var(--accent); }
+        /* ===== CAMERA ===== */
+        .cam-wrap { position:relative; z-index:5; flex:1; margin:0 16px;
+            border-radius:var(--r); overflow:hidden; background:#000;
+            border:2px solid rgba(255,255,255,0.04); transition:border-color 0.4s; }
+        body.rec .cam-wrap { border-color:var(--accent); }
+        #cam { width:100%; height:100%; object-fit:cover; display:block; }
 
-        .response-panel { position:relative; z-index:10; margin:8px 16px; padding:14px 18px; background:var(--bg-card); border-radius:10px; border:1px solid rgba(255,255,255,0.05); min-height:56px; max-height:130px; overflow-y:auto; transition:all 0.3s; }
-        .response-panel.active { border-color:var(--accent); box-shadow:0 0 20px var(--accent-glow); }
-        .response-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); margin-bottom:4px; }
-        .response-text { font-size:15px; font-weight:300; line-height:1.5; }
-        .response-text.placeholder { color:var(--text-dim); font-style:italic; }
-        .response-action { display:inline-block; font-size:11px; font-weight:600; color:var(--accent); background:var(--accent-soft); padding:2px 8px; border-radius:4px; margin-bottom:4px; }
+        .corner { position:absolute; width:20px; height:20px; border-color:var(--accent);
+            border-style:solid; border-width:0; opacity:0.35; transition:all 0.4s; }
+        .corner.tl { top:10px; left:10px; border-top-width:2px; border-left-width:2px; border-top-left-radius:4px; }
+        .corner.tr { top:10px; right:10px; border-top-width:2px; border-right-width:2px; border-top-right-radius:4px; }
+        .corner.bl { bottom:10px; left:10px; border-bottom-width:2px; border-left-width:2px; border-bottom-left-radius:4px; }
+        .corner.br { bottom:10px; right:10px; border-bottom-width:2px; border-right-width:2px; border-bottom-right-radius:4px; }
+        body.rec .corner { opacity:0.9; }
 
-        .controls { position:relative; z-index:10; padding:10px 16px 24px; display:flex; align-items:center; justify-content:center; gap:16px; }
-        .btn-side { width:52px; height:52px; border-radius:50%; border:1.5px solid rgba(255,255,255,0.1); background:var(--bg-card); color:var(--text-secondary); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; }
-        .btn-side:active { transform:scale(0.92); }
-        .btn-side svg { width:22px; height:22px; }
+        .cam-ph { position:absolute; inset:0; display:flex; flex-direction:column;
+            align-items:center; justify-content:center; gap:12px; color:var(--t3); cursor:pointer; }
+        .cam-ph svg { width:44px; height:44px; opacity:0.3; }
 
-        .btn-record { width:76px; height:76px; border-radius:50%; border:3px solid var(--accent); background:transparent; color:var(--accent); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; position:relative; }
-        .btn-record::before { content:''; position:absolute; inset:-8px; border-radius:50%; border:1px solid rgba(0,212,170,0.15); }
-        .btn-record svg { width:30px; height:30px; }
-        .btn-record:active { transform:scale(0.94); }
-        .btn-record.recording { background:var(--accent); color:var(--bg-deep); animation:pulse 1.5s ease-in-out infinite; }
-        .btn-record.processing { border-color:var(--text-dim); color:var(--text-dim); pointer-events:none; }
-        @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 var(--accent-glow)} 50%{box-shadow:0 0 0 16px rgba(0,212,170,0)} }
+        .rec-pill { position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:20;
+            padding:6px 18px; border-radius:20px; font-size:13px; font-weight:600;
+            background:rgba(0,228,184,0.92); color:var(--bg); opacity:0; transition:all 0.3s;
+            pointer-events:none; display:flex; align-items:center; gap:6px; backdrop-filter:blur(8px); }
+        .rec-pill .dot { width:8px; height:8px; border-radius:50%; background:var(--bg); animation:blink 1s infinite; }
+        body.rec .rec-pill { opacity:1; }
 
-        .spinner { display:none; width:24px; height:24px; border:2px solid var(--text-dim); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; }
+        /* ===== QUICK ACTIONS ===== */
+        .actions { position:relative; z-index:10; padding:12px 16px 6px;
+            display:flex; gap:10px; overflow-x:auto; scrollbar-width:none; }
+        .actions::-webkit-scrollbar { display:none; }
+        .act-btn { flex-shrink:0; padding:12px 20px; border-radius:14px;
+            border:1px solid rgba(255,255,255,0.06); background:var(--bg2); color:var(--t2);
+            font-family:'Outfit',sans-serif; font-size:14px; font-weight:500; cursor:pointer;
+            transition:all 0.25s; white-space:nowrap; display:flex; align-items:center; gap:8px; }
+        .act-btn:active { background:var(--accent-s); color:var(--accent);
+            border-color:rgba(0,228,184,0.2); transform:scale(0.96); }
+        .act-btn .ic { font-size:18px; }
+
+        /* ===== RESPONSE ===== */
+        .resp { position:relative; z-index:10; margin:8px 16px; padding:16px 20px;
+            background:var(--bg2); border-radius:var(--r);
+            border:1px solid rgba(255,255,255,0.04);
+            min-height:60px; max-height:140px; overflow-y:auto; transition:all 0.4s; }
+        .resp.on { border-color:rgba(0,228,184,0.3); box-shadow:0 0 24px rgba(0,228,184,0.08); }
+        .resp-label { font-size:10px; font-weight:600; text-transform:uppercase;
+            letter-spacing:1.5px; color:var(--t3); margin-bottom:6px; }
+        .resp-text { font-size:15px; font-weight:300; line-height:1.6; }
+        .resp-text.ph { color:var(--t3); font-style:italic; font-weight:400; }
+        .resp-tag { display:inline-block; font-size:10px; font-weight:700; text-transform:uppercase;
+            letter-spacing:0.5px; color:var(--accent); background:var(--accent-s);
+            padding:3px 10px; border-radius:6px; margin-bottom:6px; }
+
+        /* ===== CONTROLS ===== */
+        .controls { position:relative; z-index:10; padding:8px 16px 20px;
+            display:flex; align-items:center; justify-content:center; gap:20px; }
+        .ctrl-btn { width:50px; height:50px; border-radius:50%;
+            border:1.5px solid rgba(255,255,255,0.08); background:var(--bg2); color:var(--t3);
+            display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.25s; }
+        .ctrl-btn:active { transform:scale(0.9); background:var(--bg3); }
+        .ctrl-btn svg { width:20px; height:20px; }
+
+        .mic-btn { width:72px; height:72px; border-radius:50%; border:2.5px solid var(--accent);
+            background:transparent; color:var(--accent); display:flex; align-items:center;
+            justify-content:center; cursor:pointer; transition:all 0.3s; position:relative; }
+        .mic-btn::after { content:''; position:absolute; inset:-7px; border-radius:50%;
+            border:1px solid rgba(0,228,184,0.1); transition:all 0.3s; }
+        .mic-btn svg { width:28px; height:28px; transition:all 0.3s; }
+        .mic-btn:active { transform:scale(0.93); }
+        body.rec .mic-btn { background:var(--accent); color:var(--bg);
+            box-shadow:0 0 24px var(--accent-g); animation:mic-pulse 1.5s ease-in-out infinite; }
+        body.rec .mic-btn::after { border-color:rgba(0,228,184,0.2); inset:-12px; }
+        @keyframes mic-pulse { 0%,100%{box-shadow:0 0 0 0 var(--accent-g)} 50%{box-shadow:0 0 0 14px rgba(0,228,184,0)} }
+        .mic-btn.busy { border-color:var(--t3)!important; color:var(--t3)!important;
+            background:transparent!important; animation:none!important; pointer-events:none; }
+        .mic-btn.busy::after { border-color:transparent; }
+
+        .spinner { display:none; width:22px; height:22px; border:2px solid var(--t3);
+            border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; }
         @keyframes spin { to{transform:rotate(360deg)} }
-        #capture-canvas { display:none; }
+
+        .hint { position:relative; z-index:10; text-align:center; padding:2px 16px 6px;
+            font-size:11px; color:var(--t3); letter-spacing:0.3px; }
+
+        #cvs { display:none; }
     </style>
 </head>
 <body>
-<canvas id="capture-canvas"></canvas>
 
+<!-- Onboarding -->
+<div class="onboard" id="onboard">
+    <div class="ob-logo">&#128065;</div>
+    <h1>Basi<span>RA</span></h1>
+    <p>Votre assistant visuel intelligent</p>
+    <div class="ob-feats">
+        <div class="ob-f"><div class="i">&#128065;</div><span>Double-tap pour decrire la scene</span></div>
+        <div class="ob-f"><div class="i">&#128176;</div><span>Identifier billets et monnaie</span></div>
+        <div class="ob-f"><div class="i">&#128247;</div><span>Secouer pour changer de camera</span></div>
+        <div class="ob-f"><div class="i">&#128680;</div><span>Appui 5s pour appel d'urgence</span></div>
+    </div>
+    <button class="ob-btn" id="btn-start">Commencer</button>
+</div>
+
+<canvas id="cvs"></canvas>
+
+<!-- Header -->
 <div class="header">
     <div class="logo">
-        <div class="logo-icon">&#128065;</div>
-        <div class="logo-text">Basi<span>RA</span></div>
+        <div class="logo-mark">&#128065;</div>
+        <div class="logo-name">Basi<span>RA</span></div>
     </div>
-    <div class="status-badge" id="status-badge">Connexion...</div>
+    <div class="badge ok" id="badge">En ligne</div>
 </div>
 
-<div class="camera-container">
-    <video id="camera-feed" autoplay playsinline muted></video>
-    <div class="cam-c tl"></div><div class="cam-c tr"></div><div class="cam-c bl"></div><div class="cam-c br"></div>
-    <div class="camera-placeholder" id="camera-placeholder">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-        <span>Appuyez pour activer la camera</span>
+<!-- Camera -->
+<div class="cam-wrap">
+    <video id="cam" autoplay playsinline muted></video>
+    <div class="corner tl"></div><div class="corner tr"></div>
+    <div class="corner bl"></div><div class="corner br"></div>
+    <div class="rec-pill"><div class="dot"></div>Parlez...</div>
+    <div class="cam-ph" id="cam-ph">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+        </svg>
+        <span>Appuyez pour activer</span>
     </div>
 </div>
 
-<div class="quick-actions">
-    <button class="quick-btn" data-action="describe">&#128065; Decrire</button>
-    <button class="quick-btn" data-action="read">&#128196; Lire</button>
-    <button class="quick-btn" data-action="colors">&#127912; Couleurs</button>
-    <button class="quick-btn" data-action="people">&#128101; Personnes</button>
+<!-- Quick actions -->
+<div class="actions">
+    <button class="act-btn" data-action="describe"><span class="ic">&#128065;</span>Decrire</button>
+    <button class="act-btn" data-action="read"><span class="ic">&#128196;</span>Lire</button>
+    <button class="act-btn" data-action="money"><span class="ic">&#128176;</span>Monnaie</button>
+    <button class="act-btn" data-action="colors"><span class="ic">&#127912;</span>Couleurs</button>
+    <button class="act-btn" data-action="people"><span class="ic">&#128101;</span>Personnes</button>
 </div>
 
-<div class="response-panel" id="response-panel">
-    <div class="response-label">Reponse</div>
-    <div class="response-text placeholder" id="response-text">Maintenez le micro et posez votre question...</div>
+<!-- Response -->
+<div class="resp" id="resp">
+    <div class="resp-label">Reponse</div>
+    <div class="resp-text ph" id="resp-text">Double-tap pour parler</div>
 </div>
 
+<!-- Controls -->
 <div class="controls">
-    <button class="btn-side" id="btn-switch" aria-label="Changer camera">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 16v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/><polyline points="14 2 18 6 14 10"/><line x1="18" y1="6" x2="9" y2="6"/></svg>
+    <button class="ctrl-btn" id="btn-switch">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 16v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/>
+            <polyline points="14 2 18 6 14 10"/><line x1="18" y1="6" x2="9" y2="6"/>
+        </svg>
     </button>
-    <button class="btn-record" id="btn-record" aria-label="Maintenir pour parler">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="mic-icon"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    <button class="mic-btn" id="btn-mic">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="mic-icon">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
         <div class="spinner" id="spinner"></div>
     </button>
-    <button class="btn-side" id="btn-stop" aria-label="Arreter audio">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+    <button class="ctrl-btn" id="btn-stop">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+        </svg>
     </button>
 </div>
+<div class="hint">Double-tap pour parler &middot; Secouer = camera</div>
 
 <script>
 const API = `${location.protocol}//${location.hostname}:8000`;
+const EMERGENCY_NUMBER = 'tel:+212612587778';
+const LABELS = {describe:'Description',read:'Lecture',ask:'Question',colors:'Couleurs',people:'Personnes',money:'Monnaie'};
 
-let stream = null, recorder = null, chunks = [], recording = false, processing = false, audio = null, frontCam = false;
+// === State ===
+let stream=null, recorder=null, chunks=[], isRec=false, processing=false, frontCam=false;
+let silenceInt=null, maxTimer=null, analyser=null;
 
-const $ = id => document.getElementById(id);
-const video = $('camera-feed'), placeholder = $('camera-placeholder'), canvas = $('capture-canvas');
-const btnRec = $('btn-record'), resPanel = $('response-panel'), resText = $('response-text');
-const badge = $('status-badge'), micIcon = $('mic-icon'), spin = $('spinner');
+// === DOM ===
+const $=id=>document.getElementById(id);
+const cam=$('cam'), camPh=$('cam-ph'), cvs=$('cvs');
+const micBtn=$('btn-mic'), respEl=$('resp'), respText=$('resp-text');
+const badgeEl=$('badge'), micIcon=$('mic-icon'), spinEl=$('spinner');
 
-// --- Camera ---
-async function initCam() {
-    try {
-        if (stream) stream.getTracks().forEach(t => t.stop());
+// === Audio Context + Bips ===
+let actx=null;
+function ensureAudio(){if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();return actx}
+function bip(freq,dur){const c=ensureAudio(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=freq;g.gain.setValueAtTime(0.25,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+dur);o.start();o.stop(c.currentTime+dur)}
+['touchstart','click'].forEach(e=>document.addEventListener(e,ensureAudio,{once:true}));
+
+// === Onboarding ===
+$('btn-start').addEventListener('click',()=>{
+    $('onboard').classList.add('hidden');
+    ensureAudio();
+    initCamera();
+    initShake();
+    initEmergency();
+});
+
+// === Camera ===
+async function initCamera(){
+    try{
+        if(stream) stream.getTracks().forEach(t=>t.stop());
         stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: frontCam ? 'user' : 'environment', width:{ideal:1280}, height:{ideal:720} },
-            audio: true
+            video:{facingMode:frontCam?'user':'environment',width:{ideal:1280},height:{ideal:720}},
+            audio:true
         });
-        video.srcObject = stream;
-        placeholder.style.display = 'none';
-        setStatus('connected', 'En ligne');
-    } catch(e) { console.error(e); setStatus('error', 'Camera refusee'); }
+        cam.srcObject=stream;
+        camPh.style.display='none';
+        setBadge('ok','En ligne');
+    }catch(e){setBadge('err','Camera refusee')}
 }
 
-function grabFrame() {
-    const ctx = canvas.getContext('2d');
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
-    ctx.drawImage(video, 0, 0);
-    return new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.8));
+function grabFrame(){
+    const c=cvs.getContext('2d');
+    cvs.width=cam.videoWidth||640; cvs.height=cam.videoHeight||480;
+    c.drawImage(cam,0,0);
+    return new Promise(r=>cvs.toBlob(r,'image/jpeg',0.8));
 }
 
-// --- Recording ---
-function startRec() {
-    if (processing || !stream) return;
-    stopAudio(); chunks = [];
-    const at = stream.getAudioTracks()[0];
-    if (!at) { setStatus('error','Pas de micro'); return; }
-    const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
-    recorder = new MediaRecorder(new MediaStream([at]), { mimeType: mime });
-    recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-    recorder.onstop = () => sendProcess(new Blob(chunks, { type: mime }));
-    recorder.start();
-    recording = true;
-    btnRec.classList.add('recording');
+// === TTS (server) ===
+async function speak(text){
+    try{
+        const r=await fetch(`${API}/tts-url`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
+        const d=await r.json();
+        if(d.audio_id) playAudio(d.audio_id);
+    }catch(e){}
 }
 
-function stopRec() {
-    if (!recording || !recorder) return;
-    recorder.stop(); recording = false;
-    btnRec.classList.remove('recording');
+// === Camera Switch ===
+async function switchCam(){frontCam=!frontCam;await initCamera();speak(frontCam?'Camera avant':'Camera arriere')}
+
+// === Shake Detection ===
+let lastShake=0, lastAccel={x:0,y:0,z:0};
+function initShake(){
+    if(!window.DeviceMotionEvent) return;
+    if(typeof DeviceMotionEvent.requestPermission==='function'){
+        const b=document.createElement('button');
+        b.textContent='Activer detection de mouvement';
+        b.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:999;padding:12px 24px;border-radius:24px;border:1px solid rgba(0,228,184,0.2);background:rgba(0,228,184,0.08);color:#00e4b8;font-family:Outfit,sans-serif;font-size:13px;font-weight:500;cursor:pointer;backdrop-filter:blur(8px)';
+        document.body.appendChild(b);
+        b.addEventListener('click',async()=>{
+            try{const p=await DeviceMotionEvent.requestPermission();if(p==='granted'){window.addEventListener('devicemotion',onMotion);speak('Detection de mouvement activee')}}catch(e){}
+            b.remove();
+        });
+    } else { window.addEventListener('devicemotion',onMotion); }
+}
+function onMotion(e){
+    const a=e.accelerationIncludingGravity; if(!a) return;
+    const d=Math.abs(a.x-lastAccel.x)+Math.abs(a.y-lastAccel.y)+Math.abs(a.z-lastAccel.z);
+    lastAccel={x:a.x,y:a.y,z:a.z};
+    if(d>25 && Date.now()-lastShake>2000){lastShake=Date.now();switchCam()}
 }
 
-// --- Process (voice command) ---
-async function sendProcess(audioBlob) {
-    if (processing) return;
-    processing = true; setUI(true);
-    setResponse('Analyse en cours...', '', true);
-    try {
-        const img = await grabFrame();
-        const fd = new FormData();
-        fd.append('audio', audioBlob, 'cmd.webm');
-        fd.append('image', img, 'frame.jpg');
-        const r = await fetch(`${API}/process`, { method:'POST', body:fd });
-        if (!r.ok) throw new Error(r.status);
-        const d = await r.json();
-        setResponse(d.text, d.action, false);
-        if (d.audio) playB64(d.audio);
-    } catch(e) { console.error(e); setResponse('Erreur serveur.','',false); setStatus('error','Erreur'); }
-    finally { processing = false; setUI(false); }
+// === Silence Detection ===
+function setupAnalyser(){
+    if(!stream||analyser) return;
+    const c=ensureAudio(), s=c.createMediaStreamSource(stream);
+    analyser=c.createAnalyser(); analyser.fftSize=512; s.connect(analyser);
+}
+function startSilence(){
+    setupAnalyser(); if(!analyser) return;
+    const buf=new Uint8Array(analyser.fftSize); let lastSound=Date.now();
+    silenceInt=setInterval(()=>{
+        analyser.getByteTimeDomainData(buf);
+        let sum=0; for(let i=0;i<buf.length;i++){const v=(buf[i]-128)/128;sum+=v*v}
+        if(Math.sqrt(sum/buf.length)>0.02) lastSound=Date.now();
+        if(Date.now()-lastSound>2500 && isRec) stopRec();
+    },200);
+}
+function stopSilence(){if(silenceInt){clearInterval(silenceInt);silenceInt=null}}
+
+// === Recording ===
+function startRec(){
+    if(isRec||processing||!stream) return;
+    stopAudio(); chunks=[];
+    const at=stream.getAudioTracks()[0]; if(!at){setBadge('err','Pas de micro');return}
+    const mime=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';
+    recorder=new MediaRecorder(new MediaStream([at]),{mimeType:mime});
+    recorder.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data)};
+    recorder.onstop=()=>{
+        stopSilence(); if(maxTimer){clearTimeout(maxTimer);maxTimer=null}
+        const blob=new Blob(chunks,{type:mime});
+        if(blob.size>1000){bip(440,0.12);sendProcess(blob)}
+        else{setResp('Trop court.','',false);document.body.classList.remove('rec');isRec=false}
+    };
+    recorder.start(250); isRec=true;
+    document.body.classList.add('rec');
+    setBadge('rec','Parlez...'); setResp('Je vous ecoute...','',true);
+    bip(880,0.12); startSilence();
+    maxTimer=setTimeout(()=>{if(isRec)stopRec()},10000);
+}
+function stopRec(){
+    if(!isRec||!recorder||recorder.state==='inactive') return;
+    isRec=false; document.body.classList.remove('rec'); recorder.stop();
 }
 
-// --- Quick actions (no voice needed) ---
-async function quickAction(action) {
-    if (processing || !stream) return;
-    processing = true; setUI(true);
-    setResponse('Analyse en cours...', '', true);
-    try {
-        const img = await grabFrame();
-        const fd = new FormData();
-        fd.append('image', img, 'frame.jpg');
-
-        let url, key;
-        if (action === 'describe') { url = '/describe'; key = 'description'; }
-        else if (action === 'read') { url = '/read'; key = 'text'; }
-        else if (action === 'colors') { url = '/ask?question=Quelles couleurs vois-tu dans cette scene ?'; key = 'answer'; }
-        else if (action === 'people') { url = '/ask?question=Combien de personnes vois-tu ?'; key = 'answer'; }
-
-        const r = await fetch(`${API}${url}`, { method:'POST', body:fd });
-        if (!r.ok) throw new Error(r.status);
-        const d = await r.json();
-        const txt = d[key] || 'Pas de reponse';
-        setResponse(txt, action, false);
-
-        // TTS
-        const t = await fetch(`${API}/tts-base64`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text:txt}) });
-        const td = await t.json();
-        if (td.audio) playB64(td.audio);
-    } catch(e) { console.error(e); setResponse('Erreur.','',false); }
-    finally { processing = false; setUI(false); }
+// === Double Tap ===
+let lastTap=0;
+function handleTap(e){
+    if(e.target.closest('.act-btn')||e.target.closest('.ctrl-btn')||e.target.closest('.cam-ph')||e.target.closest('.onboard')) return;
+    if(isRec){e.preventDefault();stopRec();return}
+    const now=Date.now();
+    if(now-lastTap<350){e.preventDefault();lastTap=0;startRec()}
+    else{lastTap=now}
 }
 
-// --- Audio ---
-function playB64(b64) {
-    stopAudio();
-    const bin = atob(b64), arr = new Uint8Array(bin.length);
-    for (let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
-    const url = URL.createObjectURL(new Blob([arr],{type:'audio/mpeg'}));
-    audio = new Audio(url);
-    audio.play().catch(e=>console.error(e));
-    audio.onended = () => { URL.revokeObjectURL(url); audio=null; };
+// === Process (voice) ===
+async function sendProcess(blob){
+    if(processing) return;
+    processing=true; setUI(true); setResp('Analyse...','',true); setBadge('proc','Analyse...');
+    try{
+        const img=await grabFrame(), fd=new FormData();
+        fd.append('audio',blob,'cmd.webm'); fd.append('image',img,'frame.jpg');
+        const r=await fetch(`${API}/process`,{method:'POST',body:fd});
+        if(!r.ok) throw 0;
+        const d=await r.json();
+        setResp(d.text,d.action,false);
+        if(d.audio_id) playAudio(d.audio_id);
+        setBadge('ok','En ligne');
+    }catch(e){setResp('Erreur serveur.','',false);setBadge('err','Erreur')}
+    finally{processing=false;setUI(false)}
 }
-function stopAudio() { if(audio){audio.pause();audio=null;} }
 
-// --- UI ---
-function setStatus(t,txt) { badge.textContent=txt; badge.className=`status-badge ${t}`; }
-function setResponse(txt,action,loading) {
-    resPanel.classList.toggle('active',!loading);
-    const labels={describe:'Description',read:'Lecture',ask:'Question',colors:'Couleurs',people:'Personnes'};
+// === Quick Actions ===
+async function quickAction(action){
+    if(processing||!stream) return;
+    processing=true; setUI(true); setResp('Analyse...','',true); setBadge('proc','Analyse...');
+    try{
+        const img=await grabFrame(), fd=new FormData();
+        fd.append('image',img,'frame.jpg');
+        let url,key;
+        if(action==='describe'){url='/describe';key='description'}
+        else if(action==='read'){url='/read';key='text'}
+        else if(action==='money'){url='/money';key='result'}
+        else if(action==='colors'){url='/ask?question=Quelles couleurs vois-tu ?';key='answer'}
+        else if(action==='people'){url='/ask?question=Combien de personnes vois-tu ?';key='answer'}
+        const r=await fetch(`${API}${url}`,{method:'POST',body:fd});
+        if(!r.ok) throw 0;
+        const d=await r.json();
+        const txt=d[key]||'Pas de reponse';
+        setResp(txt,action,false);
+        const t=await fetch(`${API}/tts-url`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:txt})});
+        const td=await t.json();
+        if(td.audio_id) playAudio(td.audio_id);
+        setBadge('ok','En ligne');
+    }catch(e){setResp('Erreur.','',false);setBadge('err','Erreur')}
+    finally{processing=false;setUI(false)}
+}
+
+// === Emergency (5s hold anywhere) ===
+let emergT=null, emergV=null;
+function initEmergency(){
+    document.addEventListener('contextmenu',e=>e.preventDefault());
+    document.addEventListener('touchstart',()=>{
+        let c=0;
+        emergV=setInterval(()=>{c++;if(c<=4)bip(300+c*150,0.15)},1000);
+        emergT=setTimeout(()=>{
+            if(emergV){clearInterval(emergV);emergV=null}
+            bip(1200,0.3);
+            window.location.href=EMERGENCY_NUMBER;
+        },5000);
+    });
+    document.addEventListener('touchend',()=>{if(emergT){clearTimeout(emergT);emergT=null}if(emergV){clearInterval(emergV);emergV=null}});
+    document.addEventListener('touchcancel',()=>{if(emergT){clearTimeout(emergT);emergT=null}if(emergV){clearInterval(emergV);emergV=null}});
+}
+
+// === Audio Playback ===
+const audioEl=document.createElement('audio');
+audioEl.setAttribute('playsinline',''); audioEl.preload='auto';
+document.body.appendChild(audioEl);
+function playAudio(id){stopAudio();audioEl.src=`${API}/audio/${id}`;audioEl.load();audioEl.play().catch(()=>setTimeout(()=>audioEl.play().catch(()=>{}),300))}
+function stopAudio(){audioEl.pause();audioEl.src=''}
+
+// === UI Helpers ===
+function setBadge(type,text){badgeEl.textContent=text;badgeEl.className=`badge ${type}`}
+function setResp(text,action,loading){
+    respEl.classList.toggle('on',!loading);
     let h='';
-    if(action&&labels[action]) h+=`<span class="response-action">${labels[action]}</span><br>`;
-    h+=txt; resText.innerHTML=h; resText.classList.toggle('placeholder',loading);
+    if(action&&LABELS[action]) h+=`<span class="resp-tag">${LABELS[action]}</span><br>`;
+    h+=text; respText.innerHTML=h; respText.className=loading?'resp-text ph':'resp-text';
 }
-function setUI(on) { btnRec.classList.toggle('processing',on); micIcon.style.display=on?'none':'block'; spin.style.display=on?'block':'none'; }
+function setUI(busy){micBtn.classList.toggle('busy',busy);micIcon.style.display=busy?'none':'block';spinEl.style.display=busy?'block':'none'}
 
-// --- Events ---
-btnRec.addEventListener('mousedown', startRec);
-btnRec.addEventListener('mouseup', stopRec);
-btnRec.addEventListener('mouseleave', ()=>{if(recording)stopRec();});
-btnRec.addEventListener('touchstart', e=>{e.preventDefault();startRec();});
-btnRec.addEventListener('touchend', e=>{e.preventDefault();stopRec();});
-$('btn-switch').addEventListener('click', ()=>{frontCam=!frontCam;initCam();});
-$('btn-stop').addEventListener('click', stopAudio);
-document.querySelectorAll('.quick-btn').forEach(b=>b.addEventListener('click',()=>quickAction(b.dataset.action)));
-placeholder.addEventListener('click', initCam);
+// === Events ===
+document.addEventListener('touchend',handleTap);
+document.addEventListener('dblclick',e=>{
+    if(e.target.closest('.act-btn')||e.target.closest('.ctrl-btn')||e.target.closest('.onboard')) return;
+    e.preventDefault(); if(!isRec&&!processing) startRec();
+});
+micBtn.addEventListener('click',e=>{e.stopPropagation();if(processing)return;if(isRec)stopRec();else startRec()});
+$('btn-switch').addEventListener('click',switchCam);
+$('btn-stop').addEventListener('click',stopAudio);
+document.querySelectorAll('.act-btn').forEach(b=>b.addEventListener('click',()=>quickAction(b.dataset.action)));
+camPh.addEventListener('click',initCamera);
 
-// --- Init ---
+// === Init ===
 (async()=>{
-    try { const r=await fetch(`${API}/health`); if(r.ok) setStatus('connected','En ligne'); else setStatus('error','Serveur HS'); }
-    catch { setStatus('error','Hors ligne'); }
+    try{const r=await fetch(`${API}/health`);setBadge(r.ok?'ok':'err',r.ok?'En ligne':'Serveur HS')}
+    catch{setBadge('err','Hors ligne')}
 })();
-initCam();
 </script>
 </body>
 </html>
