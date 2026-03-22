@@ -1,3 +1,5 @@
+<div align="center">
+
 # BasiRA — بصيرة
 
 ### Assistant IA de Perception Augmentée pour Personnes Malvoyantes
@@ -9,29 +11,31 @@
 ![YOLOv8](https://img.shields.io/badge/YOLOv8-Detection-purple)
 ![Gratuit](https://img.shields.io/badge/Cout-100%25_Gratuit-00e4b8)
 
-> BasiRA transforme un smartphone en assistant visuel intelligent : il décrit l'environnement, lit les documents, identifie la monnaie, détecte les obstacles — le tout par interface 100% vocale, conçu pour les personnes en situation de handicap visuel.
+*BasiRA transforme un smartphone en assistant visuel intelligent : il décrit l'environnement, lit les documents, identifie la monnaie, détecte les obstacles — le tout par interface 100% vocale, conçu pour les personnes en situation de handicap visuel.*
+
+</div>
 
 ---
 
-## Table des matières
+## 📋 Table des matières
 
-- [Présentation](#présentation)
-- [Fonctionnalités](#fonctionnalités)
-- [Interactions accessibles](#interactions-accessibles)
-- [Architecture technique](#architecture-technique)
-- [Stack technologique](#stack-technologique)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Accès mobile HTTPS](#accès-mobile-https)
-- [Utilisation](#utilisation)
-- [Structure du projet](#structure-du-projet)
-- [Endpoints API](#endpoints-api)
-- [Accessibilité](#accessibilité)
-- [Contexte du projet](#contexte-du-projet)
+- [🎯 Présentation](#-présentation)
+- [✨ Fonctionnalités](#-fonctionnalités)
+- [🎮 Interactions accessibles](#-interactions-accessibles)
+- [🏗 Architecture technique](#-architecture-technique)
+- [🛠 Stack technologique](#-stack-technologique)
+- [📦 Installation](#-installation)
+- [⚙️ Configuration](#%EF%B8%8F-configuration)
+- [📱 Accès mobile HTTPS](#-accès-mobile-https)
+- [🚀 Utilisation](#-utilisation)
+- [🗂 Structure du projet](#-structure-du-projet)
+- [🔌 Endpoints API](#-endpoints-api)
+- [♿ Accessibilité](#-accessibilité)
+- [🏛 Contexte du projet](#-contexte-du-projet)
 
 ---
 
-## Présentation
+## 🎯 Présentation
 
 **BasiRA** (بصيرة — "clairvoyance" en arabe) est une application web progressive (PWA) qui utilise l'intelligence artificielle pour aider les personnes malvoyantes à percevoir et comprendre leur environnement.
 
@@ -56,9 +60,9 @@ L'application fonctionne via un smartphone porté au cou avec un écouteur. L'ut
 
 ---
 
-## Fonctionnalités
+## ✨ Fonctionnalités
 
-### Modules IA
+### 🔊 Modules IA
 
 | Module | Description | Commande vocale |
 |--------|-------------|-----------------|
@@ -71,7 +75,7 @@ L'application fonctionne via un smartphone porté au cou avec un écouteur. L'ut
 
 ---
 
-## Interactions accessibles
+## 🎮 Interactions accessibles
 
 Aucune interaction visuelle requise. Tout se fait par gestes simples et voix.
 
@@ -100,7 +104,7 @@ Aucune interaction visuelle requise. Tout se fait par gestes simples et voix.
 
 ---
 
-## Architecture technique
+## 🏗 Architecture technique
 
 ```
 UTILISATEUR (smartphone au cou + écouteur)
@@ -149,7 +153,7 @@ UTILISATEUR (smartphone au cou + écouteur)
 
 ---
 
-## Stack technologique
+## 🛠 Stack technologique
 
 | Composant | Technologie | Coût | Détails |
 |-----------|-------------|------|---------|
@@ -165,7 +169,7 @@ UTILISATEUR (smartphone au cou + écouteur)
 
 ---
 
-## Installation
+## 📦 Installation
 
 ### Prérequis
 
@@ -196,7 +200,7 @@ python main.py
 
 ---
 
-## Configuration
+## ⚙️ Configuration
 
 ### config.py
 
@@ -218,7 +222,7 @@ const EMERGENCY_NUMBER = 'tel:+212XXXXXXXXX';
 
 ---
 
-## Accès mobile HTTPS
+## 📱 Accès mobile HTTPS
 
 Les navigateurs mobiles exigent HTTPS pour accéder à la caméra et au micro.
 
@@ -243,7 +247,7 @@ Sur le téléphone (même WiFi) : ouvrir `https://192.168.x.x:8000` dans Chrome,
 
 ---
 
-## Utilisation
+## 🚀 Utilisation
 
 ### Premier lancement
 
@@ -280,7 +284,7 @@ Décrire, Lire, Monnaie, Scan continu, Couleurs, Personnes
 
 ---
 
-## Structure du projet
+## 🗂 Structure du projet
 
 ```
 BasiRA/
@@ -305,7 +309,7 @@ BasiRA/
 
 ---
 
-## Endpoints API
+## 🔌 Endpoints API
 
 Documentation Swagger interactive : `http://localhost:8000/docs`
 
@@ -336,7 +340,7 @@ Documentation Swagger interactive : `http://localhost:8000/docs`
 
 ---
 
-## Accessibilité
+## ♿ Accessibilité
 
 BasiRA est conçu dès le départ pour être utilisable **sans aucune capacité visuelle** :
 
@@ -353,7 +357,7 @@ BasiRA est conçu dès le départ pour être utilisable **sans aucune capacité 
 
 ---
 
-## Contexte du projet
+## 🏛 Contexte du projet
 
 Projet réalisé dans le cadre du **17e Forum National du Handicap**, organisé par le **Centre National Mohammed VI des Handicapés**, sous le thème :
 
@@ -373,6 +377,12 @@ Projet réalisé dans le cadre du **17e Forum National du Handicap**, organisé 
 
 ---
 
+<div align="center">
+
 **Université Internationale de Rabat (UIR)** — École d'Ingénierie Informatique — Big Data & Intelligence Artificielle
 
-*BasiRA — Parce que l'intelligence artificielle doit servir ceux qui en ont le plus besoin.*
+**BasiRA — بصيرة**
+
+*Parce que l'intelligence artificielle doit servir ceux qui en ont le plus besoin.*
+
+</div>
