@@ -8,7 +8,7 @@ import uuid
 import os
 from pathlib import Path
 from config import HOST, PORT
-from services import stt, tts, vision
+from services import stt, tts, vision, detection
 
 # Dossier pour stocker les fichiers audio temporaires
 AUDIO_CACHE = Path(__file__).parent / "audio_cache"
@@ -151,6 +151,23 @@ async def detect_money(image: UploadFile = File(...)):
     return {"result": result}
 
 
+@app.post("/detect")
+async def detect_obstacles_endpoint(image: UploadFile = File(...)):
+    """Détection complète d'obstacles via Vision IA (murs, portes, escaliers, etc.)."""
+    image_bytes = await image.read()
+    text = await vision.detect_obstacles_ai(image_bytes)
+    return {"text": text}
+
+
+@app.post("/detect-fast")
+async def detect_obstacles_fast(image: UploadFile = File(...)):
+    """Détection rapide d'obstacles via YOLOv8 (objets courants seulement)."""
+    image_bytes = await image.read()
+    obstacles = detection.detect_obstacles(image_bytes)
+    text = detection.format_obstacles_text(obstacles)
+    return {"obstacles": obstacles, "text": text}
+
+
 # ============================================================
 # ÉTAPE 4 : Orchestrateur — endpoint unique /process
 # ============================================================
@@ -160,6 +177,7 @@ COMMANDS = {
     "describe": ["décris", "decris", "décrit", "describe", "qu'est-ce qu'il y a", "devant moi", "autour de moi", "où suis-je", "ou suis-je", "que vois"],
     "read":     ["lis", "lire", "lecture", "document", "texte", "panneau", "affiche", "ordonnance"],
     "money":    ["billet", "monnaie", "argent", "dirham", "combien", "pièce", "piece", "sous"],
+    "detect":   ["obstacle", "danger", "attention", "chemin", "passage", "route", "trottoir", "marche"],
     "ask":      []  # fallback — toute question libre
 }
 
@@ -205,6 +223,8 @@ async def process(
         result_text = await vision.read_document(image_bytes)
     elif action == "money":
         result_text = await vision.detect_money(image_bytes)
+    elif action == "detect":
+        result_text = await vision.detect_obstacles_ai(image_bytes)
     else:  # "ask"
         result_text = await vision.visual_qa(image_bytes, question)
 

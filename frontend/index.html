@@ -165,6 +165,7 @@
     <p>Votre assistant visuel intelligent</p>
     <div class="ob-feats">
         <div class="ob-f"><div class="i">&#128065;</div><span>Double-tap pour decrire la scene</span></div>
+        <div class="ob-f"><div class="i">&#9888;</div><span>Triple-tap pour scanner les obstacles</span></div>
         <div class="ob-f"><div class="i">&#128176;</div><span>Identifier billets et monnaie</span></div>
         <div class="ob-f"><div class="i">&#128247;</div><span>Secouer pour changer de camera</span></div>
         <div class="ob-f"><div class="i">&#128680;</div><span>Appui 5s pour appel d'urgence</span></div>
@@ -203,6 +204,7 @@
     <button class="act-btn" data-action="describe"><span class="ic">&#128065;</span>Decrire</button>
     <button class="act-btn" data-action="read"><span class="ic">&#128196;</span>Lire</button>
     <button class="act-btn" data-action="money"><span class="ic">&#128176;</span>Monnaie</button>
+    <button class="act-btn" id="btn-scan" style="border-color:rgba(255,92,92,0.2)"><span class="ic">&#128308;</span>Scan continu</button>
     <button class="act-btn" data-action="colors"><span class="ic">&#127912;</span>Couleurs</button>
     <button class="act-btn" data-action="people"><span class="ic">&#128101;</span>Personnes</button>
 </div>
@@ -235,12 +237,12 @@
         </svg>
     </button>
 </div>
-<div class="hint">Double-tap pour parler &middot; Secouer = camera</div>
+<div class="hint">2x tap = parler &middot; 3x tap = scan obstacles &middot; Secouer = camera</div>
 
 <script>
 const API = `${location.protocol}//${location.hostname}:8000`;
 const EMERGENCY_NUMBER = 'tel:+212612587778';
-const LABELS = {describe:'Description',read:'Lecture',ask:'Question',colors:'Couleurs',people:'Personnes',money:'Monnaie'};
+const LABELS = {describe:'Description',read:'Lecture',ask:'Question',colors:'Couleurs',people:'Personnes',money:'Monnaie',detect:'Obstacles'};
 
 // === State ===
 let stream=null, recorder=null, chunks=[], isRec=false, processing=false, frontCam=false;
@@ -259,9 +261,18 @@ function bip(freq,dur){const c=ensureAudio(),o=c.createOscillator(),g=c.createGa
 ['touchstart','click'].forEach(e=>document.addEventListener(e,ensureAudio,{once:true}));
 
 // === Onboarding ===
-$('btn-start').addEventListener('click',()=>{
+$('btn-start').addEventListener('click', async ()=>{
     $('onboard').classList.add('hidden');
     ensureAudio();
+
+    // Demander la permission DeviceMotion (iOS) directement ici — dans le geste utilisateur
+    if(window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission==='function'){
+        try{
+            const p=await DeviceMotionEvent.requestPermission();
+            if(p==='granted') window.addEventListener('devicemotion',onMotion);
+        }catch(e){}
+    }
+
     initCamera();
     initShake();
     initEmergency();
@@ -305,15 +316,15 @@ let lastShake=0, lastAccel={x:0,y:0,z:0};
 function initShake(){
     if(!window.DeviceMotionEvent) return;
     if(typeof DeviceMotionEvent.requestPermission==='function'){
-        const b=document.createElement('button');
-        b.textContent='Activer detection de mouvement';
-        b.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:999;padding:12px 24px;border-radius:24px;border:1px solid rgba(0,228,184,0.2);background:rgba(0,228,184,0.08);color:#00e4b8;font-family:Outfit,sans-serif;font-size:13px;font-weight:500;cursor:pointer;backdrop-filter:blur(8px)';
-        document.body.appendChild(b);
-        b.addEventListener('click',async()=>{
-            try{const p=await DeviceMotionEvent.requestPermission();if(p==='granted'){window.addEventListener('devicemotion',onMotion);speak('Detection de mouvement activee')}}catch(e){}
-            b.remove();
-        });
-    } else { window.addEventListener('devicemotion',onMotion); }
+        // Permission déjà demandée dans l'onboarding
+        // Si pas encore accordée (ex: rechargement), on écoute quand même au cas où
+        DeviceMotionEvent.requestPermission().then(p=>{
+            if(p==='granted') window.addEventListener('devicemotion',onMotion);
+        }).catch(()=>{});
+    } else {
+        // Android et autres — pas besoin de permission
+        window.addEventListener('devicemotion',onMotion);
+    }
 }
 function onMotion(e){
     const a=e.accelerationIncludingGravity; if(!a) return;
@@ -366,13 +377,39 @@ function stopRec(){
 }
 
 // === Double Tap ===
-let lastTap=0;
-function handleTap(e){
-    if(e.target.closest('.act-btn')||e.target.closest('.ctrl-btn')||e.target.closest('.cam-ph')||e.target.closest('.onboard')) return;
-    if(isRec){e.preventDefault();stopRec();return}
-    const now=Date.now();
-    if(now-lastTap<350){e.preventDefault();lastTap=0;startRec()}
-    else{lastTap=now}
+// === TAP DETECTION (double tap = parler, triple tap = toggle scan) ===
+let tapTimes = [];
+const TAP_WINDOW = 500; // ms max entre les taps
+let tapTimer = null;
+
+function handleTap(e) {
+    if (e.target.closest('.act-btn') || e.target.closest('.ctrl-btn') || e.target.closest('.cam-ph') || e.target.closest('.onboard')) return;
+
+    // Si en enregistrement, un tap simple arrête
+    if (isRec) { e.preventDefault(); stopRec(); return; }
+
+    e.preventDefault();
+    const now = Date.now();
+
+    // Nettoyer les taps trop vieux
+    tapTimes = tapTimes.filter(t => now - t < TAP_WINDOW);
+    tapTimes.push(now);
+
+    // Attendre un peu pour voir si d'autres taps arrivent
+    if (tapTimer) clearTimeout(tapTimer);
+    tapTimer = setTimeout(() => {
+        const count = tapTimes.length;
+        tapTimes = [];
+
+        if (count === 2) {
+            // Double tap → enregistrement vocal
+            if (!processing) startRec();
+        } else if (count >= 3) {
+            // Triple tap → toggle scan continu
+            toggleScan();
+        }
+        // Single tap → rien (évite les déclenchements accidentels)
+    }, 300);
 }
 
 // === Process (voice) ===
@@ -403,6 +440,7 @@ async function quickAction(action){
         if(action==='describe'){url='/describe';key='description'}
         else if(action==='read'){url='/read';key='text'}
         else if(action==='money'){url='/money';key='result'}
+        else if(action==='detect'){url='/detect';key='text'}
         else if(action==='colors'){url='/ask?question=Quelles couleurs vois-tu ?';key='answer'}
         else if(action==='people'){url='/ask?question=Combien de personnes vois-tu ?';key='answer'}
         const r=await fetch(`${API}${url}`,{method:'POST',body:fd});
@@ -416,6 +454,68 @@ async function quickAction(action){
         setBadge('ok','En ligne');
     }catch(e){setResp('Erreur.','',false);setBadge('err','Erreur')}
     finally{processing=false;setUI(false)}
+}
+
+// === Scan continu d'obstacles ===
+let scanInterval=null, scanning=false, lastScanText='';
+const SCAN_DELAY=3500; // 3.5 secondes entre chaque scan
+
+async function scanOnce(){
+    if(!stream) return;
+    try{
+        const img=await grabFrame(), fd=new FormData();
+        fd.append('image',img,'frame.jpg');
+        // /detect-fast = YOLOv8 (rapide, pour le scan continu)
+        const r=await fetch(`${API}/detect-fast`,{method:'POST',body:fd});
+        if(!r.ok) return;
+        const d=await r.json();
+        if(d.text){
+            setResp(d.text,'detect',false);
+            // Annoncer seulement si le texte a changé (éviter la répétition)
+            if(d.text!==lastScanText && d.text!=='Aucun obstacle détecté. La voie semble libre.'){
+                lastScanText=d.text;
+                const t=await fetch(`${API}/tts-url`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:d.text})});
+                const td=await t.json();
+                if(td.audio_id) playAudio(td.audio_id);
+            }
+        }
+    }catch(e){console.error('Scan error:',e)}
+}
+
+function startScan(){
+    if(scanning) return;
+    scanning=true; lastScanText='';
+    // Double bip montant = scan activé
+    bip(600, 0.1); setTimeout(()=>bip(900, 0.15), 150);
+    const btn=$('btn-scan');
+    btn.style.background='rgba(255,92,92,0.15)';
+    btn.style.borderColor='rgba(255,92,92,0.4)';
+    btn.style.color='#ff5c5c';
+    btn.innerHTML='<span class="ic">&#9209;</span>Arreter scan';
+    setBadge('rec','Scan actif');
+    speak('Scan d obstacles activé');
+    scanOnce();
+    scanInterval=setInterval(scanOnce,SCAN_DELAY);
+}
+
+function stopScan(){
+    if(!scanning) return;
+    scanning=false; lastScanText='';
+    if(scanInterval){clearInterval(scanInterval);scanInterval=null}
+    // Double bip descendant = scan désactivé
+    bip(900, 0.1); setTimeout(()=>bip(500, 0.15), 150);
+    const btn=$('btn-scan');
+    btn.style.background='';
+    btn.style.borderColor='rgba(255,92,92,0.2)';
+    btn.style.color='';
+    btn.innerHTML='<span class="ic">&#128308;</span>Scan continu';
+    setBadge('ok','En ligne');
+    speak('Scan d obstacles désactivé');
+}
+
+function toggleScan(){
+    if(scanning) stopScan();
+    else startScan();
 }
 
 // === Emergency (5s hold anywhere) ===
@@ -460,7 +560,8 @@ document.addEventListener('dblclick',e=>{
 });
 micBtn.addEventListener('click',e=>{e.stopPropagation();if(processing)return;if(isRec)stopRec();else startRec()});
 $('btn-switch').addEventListener('click',switchCam);
-$('btn-stop').addEventListener('click',stopAudio);
+$('btn-stop').addEventListener('click',()=>{stopAudio();if(scanning)stopScan()});
+$('btn-scan').addEventListener('click',toggleScan);
 document.querySelectorAll('.act-btn').forEach(b=>b.addEventListener('click',()=>quickAction(b.dataset.action)));
 camPh.addEventListener('click',initCamera);
 

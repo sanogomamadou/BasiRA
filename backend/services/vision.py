@@ -91,3 +91,25 @@ async def detect_money(image_bytes: bytes) -> str:
         "Réponds en français, de manière concise."
     )
     return await _call_vision(image_bytes, prompt, max_tokens=200)
+
+
+async def detect_obstacles_ai(image_bytes: bytes) -> str:
+    """Détection d'obstacles complète pour navigation indoor/outdoor."""
+    prompt = (
+        "Tu es un assistant de navigation pour une personne aveugle. "
+        "Analyse cette image et signale TOUS les obstacles et éléments importants pour se déplacer en sécurité. "
+        "Signale en priorité :\n"
+        "- Obstacles au sol : marches, escaliers (montants ou descendants), trottoir, bordure, trou, câble, objet au sol\n"
+        "- Obstacles à hauteur du corps : murs, portes (ouvertes ou fermées), poteaux, piliers, barrières, meubles\n"
+        "- Obstacles suspendus : panneaux, branches, étagères basses\n"
+        "- Personnes et animaux sur le chemin\n"
+        "- Véhicules en mouvement ou stationnés\n"
+        "- Éléments de navigation : porte de sortie, couloir, passage libre, direction possible\n"
+        "Pour chaque élément, indique :\n"
+        "1. Quoi (ex: porte fermée, escalier descendant, chaise)\n"
+        "2. Où (à gauche, à droite, devant, au centre)\n"
+        "3. Distance approximative (très proche, proche, loin)\n"
+        "Termine par une recommandation de direction : où aller pour avancer en sécurité.\n"
+        "Réponds en français, phrases courtes, style alerte. Maximum 4-5 phrases."
+    )
+    return await _call_vision(image_bytes, prompt, max_tokens=250)
